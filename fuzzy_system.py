@@ -1,0 +1,87 @@
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+
+def sistem_fuzzy_beasiswa(ipk_val, penghasilan_val, skor_cnn_prestasi_val, skor_cnn_finansial_val):
+    """
+    Membangun dan menjalankan Sistem Inferensi Fuzzy untuk Rekomendasi Beasiswa.
+    """
+    ipk_ud = np.arange(0, 4.01, 0.1)
+    penghasilan_ud = np.arange(0, 15000001, 500000) 
+    cnn_score_ud = np.arange(0, 101, 1)           
+    
+    prioritas_ud = np.arange(0, 101, 1)            
+    
+    ipk = ctrl.Antecedent(ipk_ud, 'ipk')
+    penghasilan = ctrl.Antecedent(penghasilan_ud, 'penghasilan')
+    skor_cnn_prestasi = ctrl.Antecedent(cnn_score_ud, 'skor_cnn_prestasi')
+    skor_cnn_finansial = ctrl.Antecedent(cnn_score_ud, 'skor_cnn_finansial')
+
+    prioritas = ctrl.Consequent(prioritas_ud, 'prioritas', defuzzify_method='centroid')
+
+    ipk['rendah'] = fuzz.trimf(ipk_ud, [2.0, 2.0, 3.30])
+    ipk['sedang'] = fuzz.trimf(ipk_ud, [2.80, 3.30, 3.70])
+    ipk['tinggi'] = fuzz.trimf(ipk_ud, [3.30, 4.00, 4.00])
+
+    penghasilan['rendah'] = fuzz.trimf(penghasilan_ud, [1000000, 1000000, 5000000])
+    penghasilan['sedang'] = fuzz.trimf(penghasilan_ud, [3000000, 5000000, 7500000])
+    penghasilan['tinggi'] = fuzz.trimf(penghasilan_ud, [5000000, 15000000, 15000000])
+
+    skor_cnn_prestasi['kurang'] = fuzz.trimf(cnn_score_ud, [0, 0, 70])
+    skor_cnn_prestasi['baik'] = fuzz.trimf(cnn_score_ud, [50, 70, 85])
+    skor_cnn_prestasi['sangat_baik'] = fuzz.trimf(cnn_score_ud, [70, 100, 100])
+
+    skor_cnn_finansial['buruk'] = fuzz.trimf(cnn_score_ud, [0, 0, 70])
+    skor_cnn_finansial['sedang'] = fuzz.trimf(cnn_score_ud, [50, 70, 85])
+    skor_cnn_finansial['baik'] = fuzz.trimf(cnn_score_ud, [70, 100, 100])
+
+    prioritas['rendah'] = fuzz.trimf(prioritas_ud, [0, 20, 40])
+    prioritas['sedang'] = fuzz.trimf(prioritas_ud, [30, 50, 70])
+    prioritas['tinggi'] = fuzz.trimf(prioritas_ud, [60, 80, 95])
+    prioritas['sangat_tinggi'] = fuzz.trimf(prioritas_ud, [90, 100, 100])
+
+    rule1 = ctrl.Rule(ipk['tinggi'] & penghasilan['rendah'] & 
+                      skor_cnn_prestasi['sangat_baik'] & skor_cnn_finansial['buruk'], 
+                      prioritas['sangat_tinggi'])
+
+    rule2 = ctrl.Rule(ipk['sedang'] & penghasilan['rendah'] & 
+                      skor_cnn_prestasi['baik'] & skor_cnn_finansial['buruk'], 
+                      prioritas['tinggi'])
+
+    rule3 = ctrl.Rule(ipk['tinggi'] & penghasilan['sedang'] & 
+                      skor_cnn_prestasi['sangat_baik'] & skor_cnn_finansial['sedang'], 
+                      prioritas['tinggi'])
+    
+    rule4 = ctrl.Rule(penghasilan['tinggi'] | skor_cnn_finansial['baik'], 
+                      prioritas['rendah'])
+
+    rule5 = ctrl.Rule(ipk['sedang'] & penghasilan['sedang'] & 
+                      skor_cnn_prestasi['baik'] & skor_cnn_finansial['sedang'], 
+                      prioritas['sedang'])
+
+    rule6 = ctrl.Rule(ipk['rendah'] & penghasilan['rendah'] & 
+                      skor_cnn_prestasi['kurang'] & skor_cnn_finansial['buruk'], 
+                      prioritas['sedang'])
+
+
+    try:
+        prioritas_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6])
+        prioritas_simulasi = ctrl.ControlSystemSimulation(prioritas_ctrl)
+    except Exception as e:
+        print(f"Error saat membuat Control System: {e}")
+        return 0.0
+
+    try:
+        prioritas_simulasi.input['ipk'] = ipk_val
+        prioritas_simulasi.input['penghasilan'] = penghasilan_val
+        prioritas_simulasi.input['skor_cnn_prestasi'] = skor_cnn_prestasi_val
+        prioritas_simulasi.input['skor_cnn_finansial'] = skor_cnn_finansial_val
+    except Exception as e:
+        print(f"Error saat input nilai. Pastikan nilai berada dalam rentang UoD.")
+        print(f"Input: IPK={ipk_val}, Pghsln={penghasilan_val}, CNN Pres={skor_cnn_prestasi_val}, CNN Fin={skor_cnn_finansial_val}")
+        return 0.0
+
+    prioritas_simulasi.compute()
+    
+    rekomendasi_score = prioritas_simulasi.output['prioritas']
+    return rekomendasi_score

@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd # type: ignore
 import numpy as np
 
 
@@ -47,7 +47,7 @@ p_median = pendapatan_stats['50%']
 p_q3 = pendapatan_stats['75%']
 p_max = pendapatan_stats['max']
 
-print("\nRekomendasi Fungsi Keanggotaan Penghasilan (Ingat: Rendah = Butuh):")
+print("\nRekomendasi Fungsi Keanggotaan Penghasilan")
 print(f"* penghasilan['rendah'] = fuzz.trimf(penghasilan_ud, [{p_min:,.0f}, {p_min:,.0f}, {p_q1:,.0f}])")
 print(f"* penghasilan['sedang'] = fuzz.trimf(penghasilan_ud, [{p_q1:,.0f}, {p_median:,.0f}, {p_q3:,.0f}])")
 print(f"* penghasilan['tinggi'] = fuzz.trimf(penghasilan_ud, [{p_q3:,.0f}, {p_max:,.0f}, {p_max:,.0f}])")

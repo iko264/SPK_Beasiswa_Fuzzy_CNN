@@ -1,78 +1,113 @@
-import os
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, render_template, request, flash
 import numpy as np
 
-from fuzzy_system import sistem_fuzzy_beasiswa
-
 app = Flask(__name__)
-app.secret_key = 'kunci_rahasia_spk_beasiswa' 
-
-# print("Memuat model CNN, harap tunggu...")
-# if not os.path.exists(MODEL_SERTIFIKAT) or not os.path.exists(MODEL_RUMAH):
-#     models_loaded_status = False
-# else:
-#     model_sertifikat, model_rumah, kelas_sertifikat, kelas_rumah = load_all_models(
-#         MODEL_SERTIFIKAT, MODEL_RUMAH
-#     )
-#     models_loaded_status = True
-#     print("Model CNN berhasil dimuat. Server Flask siap.")
-
-print("="*50)
-print("SERVER BERJALAN DALAM MODE 'FUZZY-ONLY' (TANPA CNN)")
-print("Skor CNN akan diinput secara manual.")
-print("="*50)
+app.secret_key = "beasiswa-secret-key"
 
 
-@app.route('/', methods=['GET', 'POST'])
+def fuzzy_ipk(ipk):
+    rendah = max(0, min((2.5 - ipk) / 1.0, 1))
+    sedang = max(0, min((ipk - 2.0) / 0.5, (3.5 - ipk) / 0.5))
+    tinggi = max(0, min((ipk - 3.0) / 1.0, 1))
+    return rendah, sedang, tinggi
+
+
+def fuzzy_penghasilan(p):
+    rendah = max(0, min((6000000 - p) / 6000000, 1))
+    sedang = max(0, min((p - 2000000) / 2000000, (8000000 - p) / 2000000))
+    tinggi = max(0, min((p - 5000000) / 5000000, 1))
+    return rendah, sedang, tinggi
+
+
+def fuzzy_skor_manual(x):
+    rendah = max(0, min((50 - x) / 50, 1))
+    sedang = max(0, min((x - 30) / 20, (70 - x) / 20))
+    tinggi = max(0, min((x - 60) / 40, 1))
+    return rendah, sedang, tinggi
+
+def fuzzy_inference(ipk, p, prestasi, finansial):
+    ipk_r, ipk_s, ipk_t = fuzzy_ipk(ipk)
+    p_r, p_s, p_t = fuzzy_penghasilan(p)
+    pr_r, pr_s, pr_t = fuzzy_skor_manual(prestasi)
+    fi_r, fi_s, fi_t = fuzzy_skor_manual(finansial)
+
+    rule_sangat_tinggi = min(ipk_t, p_r, pr_t, fi_t)
+    rule_tinggi = max(min(ipk_t, p_s), min(ipk_s, p_r), min(pr_t, fi_s))
+    rule_sedang = max(min(ipk_s, p_s), min(pr_s, fi_s))
+    rule_rendah = max(ipk_r, p_t, pr_r, fi_r)
+
+    return {
+        "sangat_tinggi": rule_sangat_tinggi,
+        "tinggi": rule_tinggi,
+        "sedang": rule_sedang,
+        "rendah": rule_rendah
+    }
+
+def defuzzy(fz):
+    values = {
+        "sangat_tinggi": 90,
+        "tinggi": 75,
+        "sedang": 50,
+        "rendah": 20
+    }
+    numerator = sum(fz[key] * values[key] for key in fz)
+    denominator = sum(fz.values())
+    if denominator == 0:
+        return 0
+    return round(numerator / denominator, 2)
+
+@app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == 'POST':
+
+    if request.method == "POST":
         try:
-            ipk = float(request.form['ipk'])
-            penghasilan_ortu = int(request.form['penghasilan_ortu'])
-   
-            skor_cnn_prestasi = float(request.form['skor_cnn_prestasi'])
-            skor_cnn_finansial = float(request.form['skor_cnn_finansial'])
+            ipk = float(request.form["ipk"])
+            penghasilan = float(request.form["penghasilan_ortu"])
+            prestasi = int(request.form["skor_cnn_prestasi"])
+            finansial = int(request.form["skor_cnn_finansial"])
 
-            if not (0 <= skor_cnn_prestasi <= 100 and 0 <= skor_cnn_finansial <= 100):
-                flash("Kesalahan: Skor CNN Manual harus di antara 0 dan 100.")
-                return redirect(request.url)
+        except:
+            flash("Input tidak valid. Pastikan semua angka terisi dengan benar.")
+            return render_template("index.html")
 
-        except ValueError:
-            flash("Kesalahan: Semua input harus berupa angka yang valid.")
-            return redirect(request.url)
+        fz = fuzzy_inference(ipk, penghasilan, prestasi, finansial)
+        skor = defuzzy(fz)
 
-        skor_akhir = sistem_fuzzy_beasiswa(
-            ipk_val=ipk,
-            penghasilan_val=penghasilan_ortu,
-            skor_cnn_prestasi_val=skor_cnn_prestasi,
-            skor_cnn_finansial_val=skor_cnn_finansial
-        )
-
-        rekomendasi_teks = "Prioritas RENDAH"
-        rekomendasi_level = "rendah" 
-        if skor_akhir >= 85:
-            rekomendasi_teks = "Prioritas SANGAT TINGGI"
-            rekomendasi_level = "sangat-tinggi"
-        elif skor_akhir >= 65:
-            rekomendasi_teks = "Prioritas TINGGI"
-            rekomendasi_level = "tinggi"
-        elif skor_akhir >= 40:
-            rekomendasi_teks = "Prioritas SEDANG"
-            rekomendasi_level = "sedang"
+        if skor >= 85:
+            level = "sangat-tinggi"
+            teks = "Sangat Layak Mendapatkan Beasiswa"
+        elif skor >= 70:
+            level = "tinggi"
+            teks = "Layak Mendapatkan Beasiswa"
+        elif skor >= 50:
+            level = "sedang"
+            teks = "Dipertimbangkan (Sedang)"
+        else:
+            level = "rendah"
+            teks = "Tidak Direkomendasikan"
 
         return render_template(
-            'index.html',
-            skor_akhir=f"{skor_akhir:.2f}",
-            rekomendasi_teks=rekomendasi_teks,
-            rekomendasi_level=rekomendasi_level,
+            "index.html",
+            skor_akhir=skor,
+            rekomendasi_level=level,
+            rekomendasi_teks=teks,
+
             ipk_in=ipk,
-            penghasilan_in=penghasilan_ortu,
-            skor_cnn_prestasi_in=skor_cnn_prestasi, 
-            skor_cnn_finansial_in=skor_cnn_finansial 
+            penghasilan_in=penghasilan,
+            skor_cnn_prestasi_in=prestasi,
+            skor_cnn_finansial_in=finansial
         )
+        
+    return render_template(
+        "index.html",
+        penghasilan_in = None,
+        tanggungan_in = None,
+        ipk_in = None
+    )
 
-    return render_template('index.html', skor_akhir=None)
-
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    print("====================================================")
+    print(" FLASK BERJALAN DI http://127.0.0.1:5000 ")
+    print(" MODE: FUZZY ONLY (TANPA CNN) ")
+    print("====================================================")
+    app.run(debug=True)

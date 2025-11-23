@@ -1,88 +1,76 @@
+# cnn_utils.py
+import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
-import os
 
 TARGET_SIZE = (150, 150)
 
-KELAS_SERTIFIKAT_MAP = {0: 'Rendah', 1: 'Sedang', 2: 'Tinggi'}
+# Map kelas model rumah — sesuaikan dengan mapping ketika kamu melatih model
+# Pastikan ini sesuai dengan class_indices dari ImageDataGenerator saat training
 KELAS_RUMAH_MAP = {0: 'Sederhana', 1: 'Sedang', 2: 'Mewah'}
 
-SKOR_LOGIC_SERTIFIKAT = {
-    'Rendah': (0, 55),
-    'Sedang': (56, 80),
-    'Tinggi': (81, 100)
-}
-
+# Skor logic default (jika ingin mengkonversi class->range)
 SKOR_LOGIC_RUMAH = {
     'Sederhana': (0, 55),
     'Sedang': (56, 80),
     'Mewah': (81, 100)
 }
 
-def load_all_models(model_path_sertifikat, model_path_rumah):
-    """Memuat kedua model CNN dari file .h5."""
-    print("Memuat model CNN...")
+def load_all_models(model_path_sertifikat=None, model_path_rumah=None):
+    """
+    Memuat model sertifikat (opsional) dan model rumah (opsional).
+    Mengembalikan (model_sertifikat, model_rumah, kelas_sertifikat_map, kelas_rumah_map)
+    Jika suatu model tidak ada -> None.
+    """
     model_sertifikat = None
     model_rumah = None
-    try:
-        if model_path_sertifikat and os.path.exists(model_path_sertifikat):
+
+    if model_path_sertifikat and os.path.exists(model_path_sertifikat):
+        try:
             model_sertifikat = load_model(model_path_sertifikat)
-            print("Model Sertifikat OK.")
-        else:
-            print("Model sertifikat tidak ditemukan atau path kosong.")
-    except Exception as e:
-        print(f"Gagal memuat model sertifikat: {e}")
+            print("Model sertifikat dimuat.")
+        except Exception as e:
+            print(f"Gagal memuat model sertifikat: {e}")
 
-    try:
-        if model_path_rumah and os.path.exists(model_path_rumah):
+    if model_path_rumah and os.path.exists(model_path_rumah):
+        try:
             model_rumah = load_model(model_path_rumah)
-            print("Model Rumah OK.")
-        else:
-            print("Model rumah tidak ditemukan atau path kosong.")
-    except Exception as e:
-        print(f"Gagal memuat model rumah: {e}")
+            print("Model rumah dimuat.")
+        except Exception as e:
+            print(f"Gagal memuat model rumah: {e}")
 
-    print("Selesai memuat model.")
-    return model_sertifikat, model_rumah, KELAS_SERTIFIKAT_MAP, KELAS_RUMAH_MAP
+    return model_sertifikat, model_rumah, None, KELAS_RUMAH_MAP
 
-def get_cnn_fuzzy_score(image_input, model, class_map, score_logic):
+def get_cnn_fuzzy_score(image_input_path, model, class_map, score_logic=None):
     """
-    Melakukan prediksi gambar dan mengkonversinya menjadi skor 0-100.
-    'image_input' bisa berupa path file (str) atau file-like object.
+    Prediksi gambar menggunakan model dan kembalikan skor (0-100).
+    - image_input_path: path file gambar
+    - model: model keras (atau None)
+    - class_map: mapping index->label
+    - score_logic: dict label->(min,max) atau None
     """
     if model is None:
-        print("Warning: Model tidak tersedia. Mengembalikan skor default 50.0")
+        print("Model CNN tidak tersedia, kembalikan skor default 50.0")
         return 50.0
 
     try:
-        img = image.load_img(image_input, target_size=TARGET_SIZE)
-        img_array = image.img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array = img_array / 255.0
+        img = image.load_img(image_input_path, target_size=TARGET_SIZE)
+        arr = image.img_to_array(img)
+        arr = np.expand_dims(arr, axis=0) / 255.0
     except Exception as e:
-        print(f"Error memproses gambar: {e}")
+        print(f"Error memuat gambar: {e}")
         return 50.0
 
-    try:
-        predictions = model.predict(img_array)
-        if predictions is None or len(predictions) == 0:
-            return 50.0
-        preds = predictions[0]
-        predicted_class_index = int(np.argmax(preds))
-    except Exception as e:
-        print(f"Error saat prediksi: {e}")
-        return 50.0
+    preds = model.predict(arr)[0]
+    idx = int(np.argmax(preds))
+    label = class_map.get(idx, "Unknown")
 
-    predicted_class_name = class_map.get(predicted_class_index, "Unknown")
-    score_range = score_logic.get(predicted_class_name)
-
-    if score_range:
-        min_score, max_score = score_range
-        fuzzy_score = (min_score + max_score) / 2.0
-        print(f"Prediksi: {predicted_class_name} (Prob: {preds[predicted_class_index]:.3f}) -> Skor: {fuzzy_score}")
-        return float(fuzzy_score)
+    if score_logic and label in score_logic:
+        mn, mx = score_logic[label]
+        return float((mn + mx) / 2.0)
     else:
-        print(f"Error: Kelas '{predicted_class_name}' tidak ada dalam logika skor.")
-        return 0.0
+        # jika score_logic None, gunakan probabilitas untuk skala 0-100
+        prob = float(preds[idx])
+        return float(round(prob * 100.0, 2))

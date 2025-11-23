@@ -1,64 +1,73 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPK Beasiswa Fuzzy-CNN</title>
+    <title>Beasiswa Plus</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>🎓 SPK Rekomendasi Beasiswa</h1>
-        <p>Menggunakan Logika Fuzzy dan Convolutional Neural Network (CNN)</p>
+        <h1>Beasiswa Plus</h1>
+        <p>Logika Fuzzy – Sistem Pendukung Keputusan</p>
 
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="flash-error">
-                    {{ messages[0] }}
-                </div>
+                <div class="flash-error">{{ messages[0] }}</div>
             {% endif %}
         {% endwith %}
 
-        <form method="POST" enctype="multipart/form-data" class="form-spk">
-            
-            <h2>1. Data Pelamar</h2>
+        <form method="POST" class="form-spk">
+
+            <h2>Data Pelamar</h2>
+
             <div class="form-group">
-                <label for="ipk">IPK/Nilai Rata-rata (0.0 - 4.0):</label>
-                <input type="number" id="ipk" name="ipk" step="0.01" min="0" max="4" 
-                       value="{{ ipk_in | default(3.5, true) }}" required>
+                <label for="ipk">IPK (0.0 - 4.0):</label>
+                <input type="number" id="ipk" name="ipk" step="0.01" min="0" max="4"
+                value="{{ ipk_in | default(3.5, true) }}" required>
             </div>
+
             <div class="form-group">
                 <label for="penghasilan_ortu">Penghasilan Orang Tua (Rp):</label>
-                <input type="number" id="penghasilan_ortu" name="penghasilan_ortu" step="100000" min="0"
-                       value="{{ penghasilan_in | default(3000000, true) }}" required>
+                <input type="number" id="penghasilan_ortu" name="penghasilan_ortu"
+                step="100000" min="0"
+                value="{{ penghasilan_in | default(3000000, true) }}" required>
             </div>
 
-            <h2>2. Bukti Gambar (Input CNN)</h2>
             <div class="form-group">
-                <label for="file_sertifikat">Upload Foto Sertifikat Prestasi:</label>
-                <input type="file" id="file_sertifikat" name="file_sertifikat" accept="image/png, image/jpeg" required>
-            </div>
-            <div class="form-group">
-                <label for="file_rumah">Upload Foto Kondisi Rumah:</label>
-                <input type="file" id="file_rumah" name="file_rumah" accept="image/png, image/jpeg" required>
+                <label for="skor_cnn_prestasi">Skor Prestasi (Manual):</label>
+                <input type="number" id="skor_cnn_prestasi" name="skor_cnn_prestasi"
+                step="1" min="0" max="100"
+                value="{{ skor_cnn_prestasi_in | default(80, true) }}" required>
             </div>
 
-            <button type="submit" class="btn-submit">Analisis dan Hitung Prioritas</button>
+            <div class="form-group">
+                <label for="skor_cnn_finansial">Skor Finansial (Manual):</label>
+                <input type="number" id="skor_cnn_finansial" name="skor_cnn_finansial"
+                step="1" min="0" max="100"
+                value="{{ skor_cnn_finansial_in | default(30, true) }}" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Hitung Prioritas Fuzzy</button>
         </form>
 
         {% if skor_akhir is not none %}
         <div class="results-container">
             <h2>Hasil Rekomendasi</h2>
-            
+
             <div class="result-details">
-                <p>Skor Prestasi (CNN): <strong>{{ skor_cnn_prestasi }} / 100</strong></p>
-                <p>Skor Finansial (CNN): <strong>{{ skor_cnn_finansial }} / 100</strong></p>
+                <p>IPK: <strong>{{ ipk_in }}</strong></p>
+                <p>Penghasilan: <strong>Rp {{ penghasilan_in | int }}</strong></p>
+                <p>Prestasi: <strong>{{ skor_cnn_prestasi_in }}/100</strong></p>
+                <p>Finansial: <strong>{{ skor_cnn_finansial_in }}/100</strong></p>
             </div>
-            
+
             <div class="result-final result-{{ rekomendasi_level }}">
-                <h3>Skor Prioritas Akhir: {{ skor_akhir }}</h3>
+                <h3>Skor Akhir: {{ skor_akhir }}</h3>
                 <p>Keputusan: <strong>{{ rekomendasi_teks }}</strong></p>
             </div>
+
         </div>
         {% endif %}
 

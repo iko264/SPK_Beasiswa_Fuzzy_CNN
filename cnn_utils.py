@@ -1,4 +1,3 @@
-# cnn_utils.py
 import os
 import numpy as np
 import tensorflow as tf
@@ -7,11 +6,8 @@ from tensorflow.keras.preprocessing import image
 
 TARGET_SIZE = (150, 150)
 
-# Map kelas model rumah — sesuaikan dengan mapping ketika kamu melatih model
-# Pastikan ini sesuai dengan class_indices dari ImageDataGenerator saat training
 KELAS_RUMAH_MAP = {0: 'Sederhana', 1: 'Sedang', 2: 'Mewah'}
 
-# Skor logic default (jika ingin mengkonversi class->range)
 SKOR_LOGIC_RUMAH = {
     'Sederhana': (0, 55),
     'Sedang': (56, 80),
@@ -71,6 +67,5 @@ def get_cnn_fuzzy_score(image_input_path, model, class_map, score_logic=None):
         mn, mx = score_logic[label]
         return float((mn + mx) / 2.0)
     else:
-        # jika score_logic None, gunakan probabilitas untuk skala 0-100
         prob = float(preds[idx])
         return float(round(prob * 100.0, 2))

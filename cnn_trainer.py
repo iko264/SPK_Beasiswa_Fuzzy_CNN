@@ -1,79 +1,129 @@
+import os
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from tensorflow.keras.callbacks import EarlyStopping
-import os
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 
-# Lokasi dataset
-DATASET_PATH = "data/cnn_rumah_train/"
+# PATHS
+DATASET_PATH = "data/cnn_rumah_train"   
+OUTPUT_MODEL_DIR = "models"
+OUTPUT_MODEL_PATH = os.path.join(OUTPUT_MODEL_DIR, "model_rumah.h5")
+os.makedirs(OUTPUT_MODEL_DIR, exist_ok=True)
 
-# Cek folder
-print("Folder dataset:", os.listdir(DATASET_PATH))
+# HYPERPARAMS
+IMAGE_SIZE = (128, 128)   
+BATCH_SIZE = 16
+EPOCHS = 25
+VALIDATION_SPLIT = 0.2
+SEED = 42
 
-# Data augmentation
-datagen = ImageDataGenerator(
+# Data augmentation & generator
+train_datagen = ImageDataGenerator(
     rescale=1./255,
     rotation_range=20,
-    zoom_range=0.2,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    zoom_range=0.15,
     horizontal_flip=True,
-    validation_split=0.2
+    validation_split=VALIDATION_SPLIT
 )
 
-# Training generator
-train_gen = datagen.flow_from_directory(
+train_gen = train_datagen.flow_from_directory(
     DATASET_PATH,
-    target_size=(150, 150),
-    batch_size=32,
+    target_size=IMAGE_SIZE,
+    batch_size=BATCH_SIZE,
     class_mode="categorical",
-    subset="training"
+    subset="training",
+    shuffle=True,
+    seed=SEED
 )
 
-# Validation generator
-val_gen = datagen.flow_from_directory(
+val_gen = train_datagen.flow_from_directory(
     DATASET_PATH,
-    target_size=(150, 150),
-    batch_size=32,
+    target_size=IMAGE_SIZE,
+    batch_size=BATCH_SIZE,
     class_mode="categorical",
-    subset="validation"
+    subset="validation",
+    shuffle=False,
+    seed=SEED
 )
 
-# Informasi kelas
 print("Class indices:", train_gen.class_indices)
-# Contoh output:
-# {'kelas_mewah': 0, 'kelas_sederhana': 1, 'kelas_sedang': 2}
 
-# Model CNN
-model = Sequential([
-    Conv2D(32, (3,3), activation="relu", input_shape=(150,150,3)),
-    MaxPooling2D(2,2),
+# HITUNG class_weight (imbalance handling)
+from sklearn.utils.class_weight import compute_class_weight
+classes = list(train_gen.classes)
+class_weights_vals = compute_class_weight(
+    class_weight='balanced',
+    classes=np.unique(classes),
+    y=classes
+)
+class_weights = {i: w for i, w in enumerate(class_weights_vals)}
+print("Class weights:", class_weights)
 
-    Conv2D(64, (3,3), activation="relu"),
-    MaxPooling2D(2,2),
+# BUILD MODEL (transfer learning MobileNetV2)
+base_model = tf.keras.applications.MobileNetV2(
+    input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
+    include_top=False,
+    weights='imagenet'   
+)
 
-    Conv2D(128, (3,3), activation="relu"),
-    MaxPooling2D(2,2),
+# freeze base
+base_model.trainable = False
 
-    Flatten(),
-    Dense(128, activation="relu"),
-    Dropout(0.5),
-    Dense(3, activation="softmax")  # ada 3 kelas
-])
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+x = Dropout(0.4)(x)
+x = Dense(128, activation='relu')(x)
+x = Dropout(0.3)(x)
+output = Dense(train_gen.num_classes, activation='softmax')(x)
 
-model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+model = Model(inputs=base_model.input, outputs=output)
 
-# Early stopping
-es = EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True)
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
 
-# Training
+model.summary()
+
+# Callbacks
+callbacks = [
+    EarlyStopping(monitor='val_loss', patience=4, restore_best_weights=True, verbose=1),
+    ModelCheckpoint(OUTPUT_MODEL_PATH, monitor='val_loss', save_best_only=True, verbose=1),
+    ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, verbose=1)
+]
+
+# Train (stage 1: train head only)
 history = model.fit(
     train_gen,
-    epochs=30,
+    epochs=EPOCHS,
     validation_data=val_gen,
-    callbacks=[es]
+    class_weight=class_weights,
+    callbacks=callbacks
 )
 
-# Simpan model
-model.save("model_rumah.h5")
 
-print("Training selesai. Model disimpan sebagai model_rumah.h5")
+base_model.trainable = True
+N = 30 
+for layer in base_model.layers[:-N]:
+    layer.trainable = False
+
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+history_fine = model.fit(
+    train_gen,
+    epochs=10,
+    validation_data=val_gen,
+    class_weight=class_weights,
+    callbacks=callbacks
+)
+
+print("Selesai. Model tersimpan di:", OUTPUT_MODEL_PATH)

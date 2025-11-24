@@ -50,7 +50,7 @@ def sistem_fuzzy_beasiswa(ipk_val, penghasilan_val, skor_cnn_prestasi_val, skor_
     prioritas['tinggi'] = fuzz.trimf(prioritas_ud, [60, 80, 90])
     prioritas['sangat_tinggi'] = fuzz.trimf(prioritas_ud, [85, 95, 100])
 
-    # Rules (contoh, bisa kamu modifikasi)
+    # Rules 
     rules = [
         ctrl.Rule(ipk['tinggi'] & penghasilan['rendah'] & skor_cnn_prestasi['sangat_baik'] & skor_cnn_finansial['buruk'],
                   prioritas['sangat_tinggi']),
@@ -74,7 +74,6 @@ def sistem_fuzzy_beasiswa(ipk_val, penghasilan_val, skor_cnn_prestasi_val, skor_
     simulation.input['skor_cnn_prestasi'] = skor_cnn_prestasi_val
     simulation.input['skor_cnn_finansial'] = skor_cnn_finansial_val
 
-    # Compute
     simulation.compute()
 
     return float(simulation.output['prioritas'])

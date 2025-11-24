@@ -3,11 +3,15 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
+import os
 
-# Path dataset
-DATASET_PATH = "dataset_rumah/"
+# Lokasi dataset
+DATASET_PATH = "data/cnn_rumah_train/"
 
-# Augmentasi
+# Cek folder
+print("Folder dataset:", os.listdir(DATASET_PATH))
+
+# Data augmentation
 datagen = ImageDataGenerator(
     rescale=1./255,
     rotation_range=20,
@@ -16,6 +20,7 @@ datagen = ImageDataGenerator(
     validation_split=0.2
 )
 
+# Training generator
 train_gen = datagen.flow_from_directory(
     DATASET_PATH,
     target_size=(150, 150),
@@ -24,6 +29,7 @@ train_gen = datagen.flow_from_directory(
     subset="training"
 )
 
+# Validation generator
 val_gen = datagen.flow_from_directory(
     DATASET_PATH,
     target_size=(150, 150),
@@ -31,6 +37,11 @@ val_gen = datagen.flow_from_directory(
     class_mode="categorical",
     subset="validation"
 )
+
+# Informasi kelas
+print("Class indices:", train_gen.class_indices)
+# Contoh output:
+# {'kelas_mewah': 0, 'kelas_sederhana': 1, 'kelas_sedang': 2}
 
 # Model CNN
 model = Sequential([
@@ -46,7 +57,7 @@ model = Sequential([
     Flatten(),
     Dense(128, activation="relu"),
     Dropout(0.5),
-    Dense(3, activation="softmax")  # 3 kelas
+    Dense(3, activation="softmax")  # ada 3 kelas
 ])
 
 model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])

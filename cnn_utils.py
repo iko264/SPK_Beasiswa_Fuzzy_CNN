@@ -1,71 +1,35 @@
-import os
 import numpy as np
-import tensorflow as tf
 from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+import os
 
-TARGET_SIZE = (150, 150)
-
-KELAS_RUMAH_MAP = {0: 'Sederhana', 1: 'Sedang', 2: 'Mewah'}
-
-SKOR_LOGIC_RUMAH = {
-    'Sederhana': (0, 55),
-    'Sedang': (56, 80),
-    'Mewah': (81, 100)
-}
-
-def load_all_models(model_path_sertifikat=None, model_path_rumah=None):
-    """
-    Memuat model sertifikat (opsional) dan model rumah (opsional).
-    Mengembalikan (model_sertifikat, model_rumah, kelas_sertifikat_map, kelas_rumah_map)
-    Jika suatu model tidak ada -> None.
-    """
-    model_sertifikat = None
-    model_rumah = None
-
-    if model_path_sertifikat and os.path.exists(model_path_sertifikat):
-        try:
-            model_sertifikat = load_model(model_path_sertifikat)
-            print("Model sertifikat dimuat.")
-        except Exception as e:
-            print(f"Gagal memuat model sertifikat: {e}")
-
-    if model_path_rumah and os.path.exists(model_path_rumah):
-        try:
-            model_rumah = load_model(model_path_rumah)
-            print("Model rumah dimuat.")
-        except Exception as e:
-            print(f"Gagal memuat model rumah: {e}")
-
-    return model_sertifikat, model_rumah, None, KELAS_RUMAH_MAP
-
-def get_cnn_fuzzy_score(image_input_path, model, class_map, score_logic=None):
-    """
-    Prediksi gambar menggunakan model dan kembalikan skor (0-100).
-    - image_input_path: path file gambar
-    - model: model keras (atau None)
-    - class_map: mapping index->label
-    - score_logic: dict label->(min,max) atau None
-    """
-    if model is None:
-        print("Model CNN tidak tersedia, kembalikan skor default 50.0")
-        return 50.0
+def load_model_rumah(path):
+    if not os.path.exists(path):
+        print("Model rumah tidak ditemukan.")
+        return None, None
 
     try:
-        img = image.load_img(image_input_path, target_size=TARGET_SIZE)
-        arr = image.img_to_array(img)
-        arr = np.expand_dims(arr, axis=0) / 255.0
+        model = load_model(path)
+        kelas_map = {0: "kelas_mewah", 1: "kelas_sedang", 2: "kelas_sederhana"}
+        print("Model rumah berhasil dimuat.")
+        return model, kelas_map
     except Exception as e:
-        print(f"Error memuat gambar: {e}")
-        return 50.0
+        print("Gagal load model:", e)
+        return None, None
 
-    preds = model.predict(arr)[0]
-    idx = int(np.argmax(preds))
-    label = class_map.get(idx, "Unknown")
 
-    if score_logic and label in score_logic:
-        mn, mx = score_logic[label]
-        return float((mn + mx) / 2.0)
+def prediksi_rumah(img_path, model, kelas_map):
+    img = load_img(img_path, target_size=(128, 128))
+    img = img_to_array(img) / 255.0
+    img = np.expand_dims(img, axis=0)
+
+    pred = model.predict(img)
+    kelas_idx = np.argmax(pred)
+
+    # skor finansial dibuat versi fuzzy:
+    if kelas_map[kelas_idx] == "kelas_mewah":
+        return 30
+    elif kelas_map[kelas_idx] == "kelas_sedang":
+        return 60
     else:
-        prob = float(preds[idx])
-        return float(round(prob * 100.0, 2))
+        return 85

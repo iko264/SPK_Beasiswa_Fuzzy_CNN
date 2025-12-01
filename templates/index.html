@@ -33,7 +33,7 @@
                value="{{ penghasilan_in }}" required>
       </div>
 
-      <h3>Sertifikat (input manual via dropdown)</h3>
+      <h3>Sertifikat </h3>
       <div class="form-row">
         <div class="form-group">
           <label for="sert_tingkat">Tingkat</label>
@@ -67,22 +67,10 @@
         </div>
       </div>
 
+      <h3>Rumah </h3>
       <div class="form-group">
-        <label for="skor_cnn_prestasi">Atau masukkan Skor Prestasi manual (0-100)</label>
-        <input id="skor_cnn_prestasi" name="skor_cnn_prestasi" type="number" step="0.1" min="0" max="100"
-               value="{{ skor_cnn_prestasi_in }}">
-      </div>
-
-      <h3>Rumah (gunakan upload gambar — CNN akan memproses jika model ada)</h3>
-      <div class="form-group">
-        <label for="rumah_image">Upload Foto Rumah (opsional):</label>
-        <input id="rumah_image" name="rumah_image" type="file" accept="image/*">
-      </div>
-
-      <div class="form-group">
-        <label for="skor_cnn_finansial">Atau masukkan Skor Finansial manual (0-100)</label>
-        <input id="skor_cnn_finansial" name="skor_cnn_finansial" type="number" step="0.1" min="0" max="100"
-               value="{{ skor_cnn_finansial_in }}">
+        <label for="rumah_image">Upload Foto Rumah :</label>
+        <input id="rumah_image" name="rumah_image" type="file" accept="image/*" required>
       </div>
 
       <button type="submit" class="btn-submit">Hitung Prioritas Fuzzy</button>

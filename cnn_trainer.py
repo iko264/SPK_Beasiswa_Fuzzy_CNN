@@ -25,7 +25,7 @@ train_datagen = ImageDataGenerator(
     rotation_range=20,
     width_shift_range=0.1,
     height_shift_range=0.1,
-    zoom_range=0.15,
+    zoom_range=0.2,
     horizontal_flip=True,
     validation_split=VALIDATION_SPLIT
 )
@@ -52,7 +52,7 @@ val_gen = train_datagen.flow_from_directory(
 
 print("Class indices:", train_gen.class_indices)
 
-# HITUNG class_weight (imbalance handling)
+# HITUNG class_weight 
 from sklearn.utils.class_weight import compute_class_weight
 classes = list(train_gen.classes)
 class_weights_vals = compute_class_weight(
@@ -63,7 +63,7 @@ class_weights_vals = compute_class_weight(
 class_weights = {i: w for i, w in enumerate(class_weights_vals)}
 print("Class weights:", class_weights)
 
-# BUILD MODEL (transfer learning MobileNetV2)
+# BUILD MODEL 
 base_model = tf.keras.applications.MobileNetV2(
     input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
     include_top=False,
@@ -97,7 +97,7 @@ callbacks = [
     ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, verbose=1)
 ]
 
-# Train (stage 1: train head only)
+# Train 
 history = model.fit(
     train_gen,
     epochs=EPOCHS,

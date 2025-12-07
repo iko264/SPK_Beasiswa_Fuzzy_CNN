@@ -31,6 +31,8 @@ def index():
     context = {
         "ipk_in": 3.5,
         "penghasilan_in": 3000000,
+        "semester_in": 3,      
+        "keaktifan_in": 0,     
         "sert_tingkat_in": "",
         "sert_nominasi_in": "",
         "sert_juara_in": "",
@@ -45,6 +47,8 @@ def index():
         try:
             ipk = float(request.form.get('ipk', 3.5))
             penghasilan = float(request.form.get('penghasilan_ortu', 0))
+            semester = float(request.form.get('semester', 3))      
+            keaktifan = float(request.form.get('keaktifan', 0))
         except ValueError:
             flash("IPK atau penghasilan harus berupa angka.")
             return render_template("index.html", **context)
@@ -79,7 +83,9 @@ def index():
                 ipk_val=ipk,
                 penghasilan_val=penghasilan,
                 prestasi_val=skor_prestasi,
-                finansial_val=skor_finansial
+                finansial_val=skor_finansial,
+                semester_val=semester,      
+                keaktifan_val=keaktifan
             )
         except Exception as e:
             flash(f"Gagal menghitung fuzzy: {e}")
@@ -101,6 +107,8 @@ def index():
         context.update({
             "ipk_in": ipk,
             "penghasilan_in": penghasilan,
+            "semester_in": semester,
+            "keaktifan_in": keaktifan,
             "sert_tingkat_in": tingkat,
             "sert_nominasi_in": nominasi,
             "sert_juara_in": juara,

@@ -6,23 +6,8 @@
   <title>Beasiswa Plus</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
-
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-logo">Beasiswa Plus</div>
-      <ul class="nav-links">
-        <li><a href="{{ url_for('index') }}">Home</a></li>
-        <li><a href="{{ url_for('about') }}">About Us</a></li>
-        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <!-- MAIN CONTENT -->
-  <div class="container" style="margin-top: 90px;">
+  <div class="container">
     <h1>Beasiswa Plus</h1>
     <p>Sistem Rekomendasi Beasiswa (Fuzzy + CNN Rumah)</p>
 
@@ -47,20 +32,20 @@
         <input id="penghasilan_ortu" name="penghasilan_ortu" type="number" step="100000" min="0"
                value="{{ penghasilan_in }}" required>
       </div>
-
       <h3>Semester</h3>
-      <div class="form-group">
-        <label for="semester">Semester (1–8)</label>
-        <input id="semester" name="semester" type="number" min="1" max="8" value="{{ semester_in }}" required>
+          <div class="form-group">
+          <label for="semester">Semester (1–8)</label>
+          <input id="semester" name="semester" type="number" min="1" max="8" required>
       </div>
 
       <h3>Poin Keaktifan</h3>
       <div class="form-group">
         <label for="keaktifan">Poin Keaktifan (0–100)</label>
-        <input id="keaktifan" name="keaktifan" type="number" min="0" max="100" value="{{ keaktifan_in }}" required>
+        <input id="keaktifan" name="keaktifan" type="number" min="0" max="100" required>
       </div>
 
-      <h3>Sertifikat</h3>
+
+      <h3>Sertifikat </h3>
       <div class="form-row">
         <div class="form-group">
           <label for="sert_tingkat">Tingkat</label>
@@ -94,34 +79,31 @@
         </div>
       </div>
 
-      <h3>Rumah</h3>
+      <h3>Rumah </h3>
       <div class="form-group">
         <label for="rumah_image">Upload Foto Rumah :</label>
         <input id="rumah_image" name="rumah_image" type="file" accept="image/*" required>
       </div>
 
       <button type="submit" class="btn-submit">Hitung Prioritas Fuzzy</button>
-
     </form>
 
     {% if skor_akhir is not none %}
-    <div class="results-container">
-      <h2>Hasil Rekomendasi</h2>
+      <div class="results-container">
+        <h2>Hasil Rekomendasi</h2>
+        <div class="result-details">
+          <p>IPK: <strong>{{ ipk_in }}</strong></p>
+          <p>Penghasilan: <strong>Rp {{ penghasilan_in | int }}</strong></p>
+          <p>Skor Prestasi: <strong>{{ skor_cnn_prestasi_in }} / 100</strong></p>
+          <p>Skor Finansial (Rumah): <strong>{{ skor_cnn_finansial_in }} / 100</strong></p>
+        </div>
 
-      <div class="result-details">
-        <p>IPK: <strong>{{ ipk_in }}</strong></p>
-        <p>Penghasilan: <strong>Rp {{ penghasilan_in | int }}</strong></p>
-        <p>Skor Prestasi: <strong>{{ skor_cnn_prestasi_in }} / 100</strong></p>
-        <p>Skor Finansial (Rumah): <strong>{{ skor_cnn_finansial_in }} / 100</strong></p>
+        <div class="result-final result-{{ rekomendasi_level }}">
+          <h3>Skor Prioritas Akhir: {{ skor_akhir }}</h3>
+          <p>Keputusan: <strong>{{ rekomendasi_teks }}</strong></p>
+        </div>
       </div>
-
-      <div class="result-final result-{{ rekomendasi_level }}">
-        <h3>Skor Prioritas Akhir: {{ skor_akhir }}</h3>
-        <p>Keputusan: <strong>{{ rekomendasi_teks }}</strong></p>
-      </div>
-    </div>
     {% endif %}
-
   </div>
 </body>
 </html>

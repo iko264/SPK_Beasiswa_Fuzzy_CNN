@@ -72,7 +72,7 @@ def sistem_fuzzy_beasiswa(ipk_val, penghasilan_val, prestasi_val, finansial_val,
                   (semester['awal'] | semester['akhir']),
                   prioritas['tinggi']),
 
-        ctrl.Rule(penghasilan['rendah'] & finansial['buruk'],
+        ctrl.Rule(ipk['sedang'] & penghasilan['rendah'] & finansial['buruk'],
                   prioritas['tinggi']),
         
         ctrl.Rule(ipk['sedang'] & keaktifan['tinggi'] & penghasilan['sedang'], 

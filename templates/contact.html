@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Contact Us - Beasiswa Plus</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">Beasiswa Plus</div>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('about') }}">About Us</a></li>
+      <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container" style="margin-top: 90px;">
+  <h1>Contact Us</h1>
+
+  <p>Hubungi kami melalui:</p>
+
+  <p>Email: <strong>support@beasiswaplus.com</strong></p>
+  <p>Instagram: <strong>@beasiswa_plus</strong></p>
+  <p>Alamat: Indonesia</p>
+</div>
+
+</body>
+</html>

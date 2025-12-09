@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>About Us - Beasiswa Plus</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">Beasiswa Plus</div>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('about') }}">About Us</a></li>
+      <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container" style="margin-top: 90px;">
+  <h1>About Us</h1>
+  <p>
+    Beasiswa Plus adalah sistem pendukung keputusan yang dirancang untuk membantu penyeleksi 
+    menentukan tingkat prioritas calon penerima beasiswa.
+  </p>
+  <p>
+    Sistem ini menggabungkan:
+    <ul>
+      <li><strong>Fuzzy Logic</strong> untuk menganalisis IPK, penghasilan, semester, dan aktivitas.</li>
+      <li><strong>CNN (Deep Learning)</strong> untuk menilai kondisi finansial berdasarkan gambar rumah.</li>
+    </ul>
+  </p>
+</div>
+
+</body>
+</html>

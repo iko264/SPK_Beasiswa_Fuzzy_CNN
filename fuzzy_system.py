@@ -61,41 +61,89 @@ def sistem_fuzzy_beasiswa(ipk_val, penghasilan_val, prestasi_val, finansial_val,
 
     # RULES 
     rules = [
-        ctrl.Rule(ipk['tinggi'] & penghasilan['rendah'] & prestasi['sangat_baik'] & 
-                  finansial['buruk'] & keaktifan['tinggi'] & semester['tengah'],
-                  prioritas['sangat_tinggi']),
-        
-        ctrl.Rule(penghasilan['rendah'] & finansial['buruk'] & ipk['tinggi'],
-                  prioritas['sangat_tinggi']),
+    ctrl.Rule(
+        ipk['tinggi'] & penghasilan['rendah'] & prestasi['sangat_baik'] &
+        finansial['buruk'] & keaktifan['tinggi'] & semester['tengah'],
+        prioritas['sangat_tinggi']
+    ),
 
-        ctrl.Rule(ipk['tinggi'] & penghasilan['rendah'] & keaktifan['sedang'] & 
-                  (semester['awal'] | semester['akhir']),
-                  prioritas['tinggi']),
+    ctrl.Rule(
+        ipk['tinggi'] & penghasilan['rendah'] & prestasi['baik'] &
+        finansial['buruk'] & keaktifan['sedang'] & semester['awal'],
+        prioritas['sangat_tinggi']
+    ),
 
-        ctrl.Rule(ipk['sedang'] & penghasilan['rendah'] & finansial['buruk'],
-                  prioritas['tinggi']),
-        
-        ctrl.Rule(ipk['sedang'] & keaktifan['tinggi'] & penghasilan['sedang'], 
-                  prioritas['tinggi']),
+    ctrl.Rule(
+        ipk['sedang'] & penghasilan['rendah'] & prestasi['sangat_baik'] &
+        finansial['buruk'] & keaktifan['tinggi'] & semester['akhir'],
+        prioritas['sangat_tinggi']
+    ),
 
-        ctrl.Rule(ipk['sedang'] & penghasilan['sedang'] & keaktifan['sedang'],
-                  prioritas['sedang']),
+    ctrl.Rule(
+        ipk['tinggi'] & penghasilan['sedang'] & prestasi['baik'] &
+        finansial['sedang'] & keaktifan['tinggi'] & semester['awal'],
+        prioritas['tinggi']
+    ),
 
-        ctrl.Rule(ipk['tinggi'] & penghasilan['sedang'] & finansial['sedang'], 
-                  prioritas['sedang']),
+    ctrl.Rule(
+        ipk['sedang'] & penghasilan['rendah'] & prestasi['baik'] &
+        finansial['sedang'] & keaktifan['sedang'] & semester['tengah'],
+        prioritas['tinggi']
+    ),
 
-        ctrl.Rule(penghasilan['rendah'] & ipk['rendah'], 
-                  prioritas['sedang']),
+    ctrl.Rule(
+        ipk['tinggi'] & penghasilan['sedang'] & prestasi['baik'] &
+        finansial['buruk'] & keaktifan['sedang'] & semester['akhir'],
+        prioritas['tinggi']
+    ),
 
-        ctrl.Rule(semester['tengah'] & ipk['sedang'] & keaktifan['rendah'], 
-                  prioritas['sedang']),
+    ctrl.Rule(
+        ipk['sedang'] & penghasilan['sedang'] & prestasi['sangat_baik'] &
+        finansial['sedang'] & keaktifan['tinggi'] & semester['tengah'],
+        prioritas['tinggi']
+    ),
 
-        ctrl.Rule(penghasilan['tinggi'] | finansial['baik'],
-                  prioritas['rendah']),
+    ctrl.Rule(
+        ipk['sedang'] & penghasilan['sedang'] & prestasi['baik'] &
+        finansial['sedang'] & keaktifan['sedang'] & semester['tengah'],
+        prioritas['sedang']
+    ),
 
-        ctrl.Rule(ipk['rendah'] & keaktifan['rendah'] & penghasilan['sedang'],
-                  prioritas['rendah']),
-    ]
+    ctrl.Rule(
+        ipk['rendah'] & penghasilan['rendah'] & prestasi['baik'] &
+        finansial['sedang'] & keaktifan['tinggi'] & semester['awal'],
+        prioritas['sedang']
+    ),
+
+    ctrl.Rule(
+        ipk['sedang'] & penghasilan['sedang'] & prestasi['kurang'] &
+        finansial['buruk'] & keaktifan['sedang'] & semester['akhir'],
+        prioritas['sedang']
+    ),
+
+    ctrl.Rule(
+        ipk['tinggi'] & penghasilan['tinggi'] & prestasi['sangat_baik'] &
+        finansial['sedang'] & keaktifan['tinggi'] & semester['awal'],
+        prioritas['sedang']
+    ),
+
+    ctrl.Rule(
+        ipk['rendah'] & penghasilan['tinggi'] & prestasi['kurang'] &
+        finansial['baik'] & keaktifan['rendah'] & semester['awal'],
+        prioritas['rendah']
+    ),
+
+    ctrl.Rule(
+        ipk['rendah'] & penghasilan['sedang'] & prestasi['kurang'] &
+        finansial['sedang'] & keaktifan['rendah'] & semester['tengah'],
+        prioritas['rendah']
+    ),
+
+    ctrl.Rule(ipk['sedang'] & penghasilan['tinggi'] & prestasi['baik'] &
+        finansial['baik'] & keaktifan['rendah'] & semester['akhir'],
+        prioritas['rendah']
+    ),
+]   
 
     control = ctrl.ControlSystem(rules)
     simulation = ctrl.ControlSystemSimulation(control)

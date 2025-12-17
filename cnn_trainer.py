@@ -13,14 +13,14 @@ from sklearn.utils.class_weight import compute_class_weight
 DATASET_PATH = "data/cnn_rumah_train"    
 OUTPUT_MODEL_DIR = "models"
 OUTPUT_MODEL_PATH = os.path.join(OUTPUT_MODEL_DIR, "model_rumah_4grafik.h5")
-OUTPUT_IMAGES_DIR = "gambar_laporan" # Folder untuk simpan hasil grafik
+OUTPUT_IMAGES_DIR = "gambar_laporan" 
 
 os.makedirs(OUTPUT_MODEL_DIR, exist_ok=True)
 os.makedirs(OUTPUT_IMAGES_DIR, exist_ok=True)
 
 IMAGE_SIZE = (128, 128)    
 BATCH_SIZE = 16
-EPOCHS = 25 # Bisa dikurangi jadi 15-20 jika ingin lebih cepat buat laporan
+EPOCHS = 25 
 VALIDATION_SPLIT = 0.2
 SEED = 42
 
@@ -89,7 +89,7 @@ model.compile(
     metrics=['accuracy']
 )
 
-# --- 3. SIMPAN DIAGRAM ARSITEKTUR (Tanpa Training) ---
+# --- 3. SIMPAN DIAGRAM ARSITEKTUR  ---
 try:
     print("Menyimpan Diagram Arsitektur...")
     plot_path = os.path.join(OUTPUT_IMAGES_DIR, "arsitektur_cnn.png")
@@ -98,7 +98,7 @@ try:
 except Exception as e:
     print(f"[SKIP] Gagal membuat diagram arsitektur (perlu graphviz): {e}")
 
-# --- 4. TRAINING (Untuk Dapatkan Grafik Akurasi) ---
+# --- 4. TRAINING ---
 print("Mulai Training Ulang...")
 callbacks = [
     EarlyStopping(monitor='val_loss', patience=4, restore_best_weights=True, verbose=1),

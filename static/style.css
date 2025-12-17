@@ -1,17 +1,42 @@
-/* File: static/style.css */
+/* File: static/style.css #75b7ea*/
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: #75b7ea;
+    background-color: #ffffff;
     color: #333;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
 }
+.wrapper {
+    background-color: #75b7ea;
+    width: 100%;
+    min-height: 50vh;
+}
+.wrapper-contact {
+    background-color: #75b7ea;
+    width: 100%;
+    min-height: 50vh;
+}
+
+.wave-svg {
+  display: block;  /* Kuncinya ada di sini */
+  width: 100%;
+  height: auto;
+  margin-bottom: -1px;
+}
+.wave-svg-contact {
+  display: block;  /* Kuncinya ada di sini */
+  width: 100%;
+  height: auto;
+  margin-bottom: -100px;
+}
+
 .container {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     background-color: #ffffff;
-    border-radius: 8px;
+    border-radius: 0px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 h1, h2 {
@@ -141,10 +166,94 @@ h1, h2 {
     color: #1abc9c;
 }
 
-/* Info Section */
+.hero {
+    margin-top: -100px;
+    margin-bottom: -100px;
+    width: 100%;
+    min-height: 50vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 8%;
+}
+
+.hero-text {
+    width: 50%;
+}
+.hero-text h1 {
+    font-size: 42px;
+    color: #10202e;
+}
+.hero-text h1 span {
+    color: #00c2ff;
+}
+.hero-text p {
+    margin-top: 10px;
+    font-size: 17px;
+    color: #444;
+}
+
+.hero-img {
+    width: 45%;
+    text-align: center;
+}
+.hero-img img {
+    width: 420px;
+    animation: float 3s infinite ease-in-out;
+}
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0); }
+}
 .info-section {
     margin-top: 40px;
     padding: 20px;
     background: #ecf0f1;
     border-radius: 8px;
+}
+
+footer {
+    width: 100%;
+}
+
+footer .container {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+/* Membuat tombol bulat */
+.btn-floating {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: white;
+    border: none;
+    margin: 0 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: transform 0.2s;
+    color: #75b7ea; 
+}
+
+.btn-floating:hover {
+    transform: translateY(-3px); /* Efek naik saat di-hover */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.copyright-section {
+    background-color: rgba(0, 0, 0, 0.1);
+    text-align: center;
+    padding: 15px;
+    color: white;
+}
+
+.copyright-section a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
 }
